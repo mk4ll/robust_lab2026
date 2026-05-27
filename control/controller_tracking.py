@@ -4,6 +4,8 @@ import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 import pandas as pd
 import sys
+import os
+from datetime import datetime
 
 # ==========================================
 # 1. CONTROLLER SELECTION MENU
@@ -191,11 +193,23 @@ finally:
     if len(time_data) > 0:
         print(f"\nSaving Data for {controller_title}...")
 
-        # Replace spaces/dashes with underscores for clean file names
+        # Create logs directory if it doesn't exist
+        logs_dir = 'control_logs'
+        if not os.path.exists(logs_dir):
+            os.makedirs(logs_dir)
+        
+        # Create timestamped subfolder
+        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
         safe_name = controller_title.replace(" ", "_").replace("-", "_")
+        run_folder = os.path.join(logs_dir, f'{timestamp}_{safe_name}')
+        os.makedirs(run_folder, exist_ok=True)
 
-        fig.savefig(f'Response_{safe_name}.png', dpi=300)
-        print(f"-> Plot saved as 'Response_{safe_name}.png'")
+        # Save files to the run folder
+        png_path = os.path.join(run_folder, f'Response_{safe_name}.png')
+        csv_path = os.path.join(run_folder, f'Data_{safe_name}.csv')
+
+        fig.savefig(png_path, dpi=300)
+        print(f"-> Plot saved as '{png_path}'")
 
         df = pd.DataFrame({
             'Time(s)': time_data,
@@ -204,6 +218,6 @@ finally:
             'PWM': pwm_data,
             'Disturbance': disturbance_data
         })
-        df.to_csv(f'Data_{safe_name}.csv', index=False)
-        print(f"-> Data saved as 'Data_{safe_name}.csv'")
+        df.to_csv(csv_path, index=False)
+        print(f"-> Data saved as '{csv_path}'")
         print("Done! On to the next one!")
